@@ -1,23 +1,19 @@
 const express = require("express");
 const request = require("request");
-const functions = require("firebase-functions");
-
+// const functions = require("firebase-functions");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 const app = express();
 
 app.set("port", process.env.PORT || 8080);
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-  );
-  res.header("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE, OPTIONS");
+app.use(cors());
+app.use(bodyParser.json());
+app.use("weekly", function (req, res, next) {
   next();
 });
 
 app.get("/weekly", (req, res) => {
   const bHTMLSPLIT = [];
-
   request("https://heroesofthestorm.com/en-us/", (error, response, body) => {
     console.error("error:", error);
     console.log("statusCode:", response && response.statusCode);
@@ -32,15 +28,14 @@ app.get("/weekly", (req, res) => {
       bHTMLSPLIT.push({ heroName: splittedHero });
     }
 
-    const parsed = JSON.stringify(bHTMLSPLIT);
-    const parsed2 = JSON.parse(parsed);
+    const parsed = JSON.parse(JSON.stringify(bHTMLSPLIT));
 
-    console.log(parsed2);
+    console.log(parsed);
+    res.send(parsed);
     res.set("Cache-Control", "public, max-age=300,s-maxage=600");
-    res.send(parsed2);
   });
 });
 
-exports.app = functions.https.onRequest(app);
+// exports.app = functions.https.onRequest(app);
 
 app.listen(app.get("port"));
